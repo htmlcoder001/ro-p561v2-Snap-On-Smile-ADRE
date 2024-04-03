@@ -212,6 +212,24 @@ body{--wp--preset--color--black: #000000;--wp--preset--color--cyan-bluish-gray: 
 										</div>
 									</div>
 									<div id="form">
+										<style>
+											#form #my-form input {
+												width: 100%;
+												border:2px solid #000000
+											}
+											div.iti {
+												width: 100%;
+												margin-bottom: 8px;
+											}
+											div.iti input {
+												border:2px solid #000000
+											}
+											#validation-message {
+												font-size: 16px;
+												text-align: center;
+												margin-bottom: 16px;
+											}
+										</style>
 										<form id="my-form" class="order_form" 
 										 geo="ro" action="api.php" method="post" 
 	onsubmit="return validate_form(this, 'Vă rugăm să introduceți un număr de telefon corect');">
@@ -232,10 +250,11 @@ body{--wp--preset--color--black: #000000;--wp--preset--color--cyan-bluish-gray: 
 											</div>
 											
 											<label class="example">De exemplu: <em>Maria Dumitrescu</em></label>
-											<input style="border-bottom:2px solid #000000" class="form-input" name="name" type="text" placeholder="Numele dvs." required="">
+											<input class="form-input" name="name" type="text" placeholder="Numele dvs." required="">
 											
 											<label class="example">De exemplu: <em>+40 11234567</em></label>
-											<input style="border-bottom:2px solid #000000" class="form-input" name="phone" type="tel" placeholder="Telefon (mobil activ)" required="">
+											<input id="phone" class="form-input" name="phone" type="tel" placeholder="Telefon (mobil activ)" required="">
+											<div id="validation-message"></div>
 											
 											<button style="cursor: pointer" type="submit" name="submitBtn">
 												COMANDĂ
@@ -3847,6 +3866,52 @@ body{--wp--preset--color--black: #000000;--wp--preset--color--cyan-bluish-gray: 
    data-redirect="true"
    data-isoff="false">
 </script>
+		
+		<!-- PHONE INPUT -->
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@20.0.5/build/css/intlTelInput.css">
+		<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@20.0.5/build/js/intlTelInput.min.js"></script>
+		<script>
+			const input = document.querySelector("#phone");
+			const submitButton = document.querySelector("button[type='submit']");
+			const iti = window.intlTelInput(input, {
+				allowDropdown: false,
+				countrySearch: false,
+				geoIpLookup: function(callback) {
+					fetch("https://ipapi.co/json")
+						.then(function(res) { return res.json(); })
+						.then(function(data) { callback(data.country_code); })
+						.catch(function() { callback(); });
+				},
+				
+				
+				initialCountry: "ro",
+				onlyCountries: ["ro"],
+				placeholderNumberType: "MOBILE",
+				showFlags: true,
+				showSelectedDialCode: true,
+				utilsScript: "./js/utils.js",
+			});
+			
+			input.addEventListener('input', function() {
+				const validationMessage = document.querySelector("#validation-message");
+				
+				if (iti.isValidNumber()) {
+					if (validationMessage) {
+						validationMessage.textContent = "Numărul de telefon este valid";
+					} else {
+						validationMessage.textContent = "Numărul de telefon este valid";
+					}
+					submitButton.removeAttribute('disabled');
+				} else {
+					if (validationMessage) {
+						validationMessage.textContent = "Numărul de telefon nu este valid";
+					} else {
+						validationMessage.textContent = "Numărul de telefon nu este valid";
+					}
+					submitButton.setAttribute('disabled', 'disabled');
+				}
+			})
+		</script>
 
 </body>
 </html>
